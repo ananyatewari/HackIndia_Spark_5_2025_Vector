@@ -4,7 +4,6 @@ import App from './App';
 import 'antd/dist/reset.css';
 import './index.css';
 
-// Add global styles
 const style = document.createElement('style');
 style.textContent = `
   body {

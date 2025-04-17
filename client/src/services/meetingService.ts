@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/meetings';
 
-// Set up axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +10,7 @@ const api = axios.create({
 });
 
 export interface Meeting {
-  _id: string;  // Changed from id to _id to match MongoDB
+  _id: string;
   title: string;
   description: string;
   date: string;
@@ -40,7 +39,6 @@ export interface MeetingStatistics {
 }
 
 export const meetingService = {
-  // Create a new meeting
   createMeeting: async (meetingData: Partial<Meeting>) => {
     try {
       const response = await api.post('/', meetingData);
@@ -51,7 +49,6 @@ export const meetingService = {
     }
   },
 
-  // Get all meetings
   getMeetings: async (options?: { upcoming?: boolean; past?: boolean }) => {
     try {
       const params = new URLSearchParams();
@@ -66,29 +63,24 @@ export const meetingService = {
     }
   },
 
-  // Get upcoming meetings
   getUpcomingMeetings: async () => {
     return meetingService.getMeetings({ upcoming: true });
   },
 
-  // Get past meetings
   getPastMeetings: async () => {
     return meetingService.getMeetings({ past: true });
   },
 
-  // Get a single meeting
   getMeeting: async (id: string) => {
     const response = await api.get(`/${id}`);
     return response.data;
   },
 
-  // Update a meeting
   updateMeeting: async (id: string, meetingData: Partial<Meeting>) => {
     const response = await api.put(`/${id}`, meetingData);
     return response.data;
   },
 
-  // Delete a meeting
   deleteMeeting: async (id: string) => {
     try {
       const response = await api.delete(`/${id}`);
@@ -99,7 +91,6 @@ export const meetingService = {
     }
   },
 
-  // Get meeting statistics
   getMeetingStatistics: async () => {
     try {
       const response = await api.get('/statistics');

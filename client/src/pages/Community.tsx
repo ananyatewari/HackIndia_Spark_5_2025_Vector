@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal, Form, Input, List, Avatar, Tag, Space, Select, Row, Col } from 'antd';
 import { PlusOutlined, UserAddOutlined, TeamOutlined } from '@ant-design/icons';
 
@@ -9,35 +9,72 @@ const Community: React.FC = () => {
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
   const [form] = Form.useForm();
 
-  const groups = [
-    {
-      id: 1,
-      name: 'Development Team',
-      members: 8,
-      description: 'Core development team members',
-    },
-    {
-      id: 2,
-      name: 'Product Team',
-      members: 5,
-      description: 'Product management and design team',
-    },
-  ];
+  const loadData = () => {
+    const savedGroups = localStorage.getItem('groups');
+    const savedMembers = localStorage.getItem('members');
 
-  const members = [
-    {
-      id: 1,
-      name: 'John Doe',
-      role: 'Developer',
-      email: 'john@example.com',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      role: 'Designer',
-      email: 'jane@example.com',
-    },
-  ];
+    if (savedGroups && savedMembers) {
+      return {
+        groups: JSON.parse(savedGroups),
+        members: JSON.parse(savedMembers),
+      };
+    }
+
+    return {
+      groups: [
+        {
+          id: 1,
+          name: 'Development Team',
+          members: ['John Doe', 'Jane Smith'],
+          description: 'Core development team members',
+        },
+        {
+          id: 2,
+          name: 'Product Team',
+          members: ['Mike Johnson', 'Sarah Lee'],
+          description: 'Product management and design team',
+        },
+      ],
+      members: [
+        {
+          id: 1,
+          name: 'John Doe',
+          role: 'Developer',
+          email: 'john@example.com',
+        },
+        {
+          id: 2,
+          name: 'Jane Smith',
+          role: 'Designer',
+          email: 'jane@example.com',
+        },
+        {
+          id: 3,
+          name: 'Mike Johnson',
+          role: 'Product Manager',
+          email: 'mike@example.com',
+        },
+        {
+          id: 4,
+          name: 'Sarah Lee',
+          role: 'Designer',
+          email: 'sarah@example.com',
+        },
+      ],
+    };
+  };
+
+  const [groups, setGroups] = useState(loadData().groups);
+  const [members, setMembers] = useState(loadData().members);
+
+  const saveData = () => {
+    localStorage.setItem('groups', JSON.stringify(groups));
+    localStorage.setItem('members', JSON.stringify(members));
+  };
+
+  useEffect(() => {
+    saveData();
+  }, [groups, members]);
 
   const showCreateGroupModal = () => {
     setIsCreateGroupModalVisible(true);
@@ -49,7 +86,13 @@ const Community: React.FC = () => {
 
   const handleCreateGroup = () => {
     form.validateFields().then((values) => {
-      console.log('Group values:', values);
+      const newGroup = {
+        id: groups.length + 1,
+        name: values.name,
+        description: values.description,
+        members: [],
+      };
+      setGroups([...groups, newGroup]);
       setIsCreateGroupModalVisible(false);
       form.resetFields();
     });
@@ -57,10 +100,50 @@ const Community: React.FC = () => {
 
   const handleInvite = () => {
     form.validateFields().then((values) => {
-      console.log('Invite values:', values);
+      const newMembers = values.emails.split(',').map((email) => {
+        return {
+          id: members.length + 1,
+          name: email,
+          role: 'Member',
+          email,
+        };
+      });
+      setMembers([...members, ...newMembers]);
+
+      if (values.group) {
+        setGroups(
+          groups.map((group) => {
+            if (group.id === values.group) {
+              return {
+                ...group,
+                members: [...group.members, ...newMembers.map((m) => m.name)],
+              };
+            }
+            return group;
+          })
+        );
+      }
       setIsInviteModalVisible(false);
       form.resetFields();
     });
+  };
+
+  const handleRemoveGroup = (groupId: number) => {
+    setGroups(groups.filter((group) => group.id !== groupId));
+  };
+
+  const handleRemoveMember = (memberId: number) => {
+    const memberToRemove = members.find((m) => m.id === memberId);
+    if (memberToRemove) {
+      setMembers(members.filter((m) => m.id !== memberId));
+
+      setGroups(
+        groups.map((group) => ({
+          ...group,
+          members: group.members.filter((member) => member !== memberToRemove.name),
+        }))
+      );
+    }
   };
 
   return (
@@ -85,11 +168,23 @@ const Community: React.FC = () => {
               renderItem={(group) => (
                 <List.Item
                   actions={[
-                    <Button type="link" onClick={() => console.log('View group', group.id)}>
+                    <Button
+                      type="link"
+                      onClick={() => console.log('View group', group.id)}
+                    >
                       View
                     </Button>,
-                    <Button type="link" onClick={() => console.log('Edit group', group.id)}>
+                    <Button
+                      type="link"
+                      onClick={() => console.log('Edit group', group.id)}
+                    >
                       Edit
+                    </Button>,
+                    <Button
+                      type="link"
+                      onClick={() => handleRemoveGroup(group.id)}
+                    >
+                      Remove
                     </Button>,
                   ]}
                 >
@@ -99,7 +194,7 @@ const Community: React.FC = () => {
                     description={
                       <>
                         <div>{group.description}</div>
-                        <Tag color="blue">{group.members} members</Tag>
+                        <Tag color="blue">{group.members.length} members</Tag>
                       </>
                     }
                   />
@@ -117,7 +212,10 @@ const Community: React.FC = () => {
               renderItem={(member) => (
                 <List.Item
                   actions={[
-                    <Button type="link" onClick={() => console.log('Remove member', member.id)}>
+                    <Button
+                      type="link"
+                      onClick={() => handleRemoveMember(member.id)}
+                    >
                       Remove
                     </Button>,
                   ]}
@@ -175,12 +273,7 @@ const Community: React.FC = () => {
             label="Email Addresses"
             rules={[{ required: true, message: 'Please input email addresses!' }]}
           >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              placeholder="Enter email addresses"
-              tokenSeparators={[',']}
-            />
+            <Input placeholder="Enter comma-separated email addresses" />
           </Form.Item>
 
           <Form.Item
@@ -201,4 +294,4 @@ const Community: React.FC = () => {
   );
 };
 
-export default Community; 
+export default Community;

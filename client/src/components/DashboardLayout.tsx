@@ -17,7 +17,6 @@ const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set a default user ID if not present
     if (!localStorage.getItem('userId')) {
       const defaultUserId = 'user-' + Math.random().toString(36).substr(2, 9);
       localStorage.setItem('userId', defaultUserId);

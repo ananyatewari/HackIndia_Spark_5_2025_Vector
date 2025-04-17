@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Modal, Form, Input, DatePicker, TimePicker, Select, Space, Row, Col, Table, Tabs, Calendar, Badge, Statistic, message, Checkbox } from 'antd';
-import { PlusOutlined, UploadOutlined, VideoCameraOutlined, CalendarOutlined, TeamOutlined, BarChartOutlined } from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined, CalendarOutlined, TeamOutlined, BarChartOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { meetingService, Meeting, MeetingStatistics } from '../services/meetingService';
-import { Typography } from 'antd';
-
-const { Title, Text } = Typography;
 
 const Meetings: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -58,21 +55,21 @@ const Meetings: React.FC = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      console.log('Form values:', values); // Debug log
+      console.log('Form values:', values);
       
       const meetingData = {
         ...values,
         date: values.date.format('YYYY-MM-DD'),
         time: values.time.format('HH:mm'),
-        participants: [], // Initialize empty array
-        attendance: {}, // Initialize empty object
-        createdBy: localStorage.getItem('userId') || 'default-user', // Add createdBy field
+        participants: [],
+        attendance: {},
+        createdBy: localStorage.getItem('userId') || 'default-user', 
       };
 
-      console.log('Meeting data to be sent:', meetingData); // Debug log
+      console.log('Meeting data to be sent:', meetingData);
       
       const response = await meetingService.createMeeting(meetingData);
-      console.log('Server response:', response); // Debug log
+      console.log('Server response:', response);
 
       message.success('Meeting created successfully');
       setIsModalVisible(false);
@@ -80,7 +77,7 @@ const Meetings: React.FC = () => {
       fetchMeetings();
       fetchStatistics();
     } catch (error: any) {
-      console.error('Error creating meeting:', error.response?.data || error); // Debug log
+      console.error('Error creating meeting:', error.response?.data || error);
       message.error(error.response?.data?.message || 'Failed to create meeting');
     }
   };
