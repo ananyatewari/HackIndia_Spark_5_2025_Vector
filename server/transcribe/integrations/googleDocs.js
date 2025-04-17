@@ -17,7 +17,6 @@ const drive = google.drive({ version: "v3", auth });
 
 export async function saveToGoogleDocs({ title, summary, actionItems, mom }) {
   try {
-    // Step 1: Create document
     const doc = await docs.documents.create({
       requestBody: {
         title: title,
@@ -26,7 +25,6 @@ export async function saveToGoogleDocs({ title, summary, actionItems, mom }) {
 
     const documentId = doc.data.documentId;
 
-    // Step 2: Build content & styling
     const sections = [
       { heading: "📜 Summary", content: summary },
       { heading: "🎯 Action Items", content: actionItems },
@@ -35,9 +33,7 @@ export async function saveToGoogleDocs({ title, summary, actionItems, mom }) {
 
     let requests = [];
 
-    let index = 1; // content starts after document start
-
-    // Insert Title
+    let index = 1;
     requests.push({
       insertText: {
         location: { index },
@@ -61,7 +57,6 @@ export async function saveToGoogleDocs({ title, summary, actionItems, mom }) {
     index += title.length + 2;
 
     for (const section of sections) {
-      // Add section heading
       requests.push({
         insertText: {
           location: { index },
@@ -84,7 +79,6 @@ export async function saveToGoogleDocs({ title, summary, actionItems, mom }) {
 
       index += section.heading.length + 1;
 
-      // Add section content
       const contentText = `${section.content.trim()}\n\n`;
       requests.push({
         insertText: {
@@ -96,13 +90,11 @@ export async function saveToGoogleDocs({ title, summary, actionItems, mom }) {
       index += contentText.length;
     }
 
-    // Step 3: Update document
     await docs.documents.batchUpdate({
       documentId,
       requestBody: { requests },
     });
 
-    // Step 4: Make it shareable with anyone
     await drive.permissions.create({
       fileId: documentId,
       requestBody: {

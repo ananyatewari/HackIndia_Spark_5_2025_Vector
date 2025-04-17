@@ -4,15 +4,12 @@ import { fileURLToPath } from "url";
 import Audio from "../models/Audio.js";
 import { transcribeAudio } from "../transcribe/transcribe/whisper.js";
 
-// Setup __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Properly resolve AUDIO_DIR
 const AUDIO_DIR = path.join(__dirname, "../uploads/audio");
-const SCAN_INTERVAL = 60 * 1000; // 10 seconds
+const SCAN_INTERVAL = 60 * 1000; 
 
-// Ensure upload directory exists
 if (!fs.existsSync(AUDIO_DIR)) {
   fs.mkdirSync(AUDIO_DIR, { recursive: true });
   console.log(`Created audio upload directory at ${AUDIO_DIR}`);
@@ -42,8 +39,6 @@ async function processAudioFile(filePath) {
     console.log(`📥 Processing file: ${filePath}`);
     console.log(`📦 File size: ${stats.size} bytes`);
 
-    const fileData = fs.readFileSync(filePath);
-
     const extension = path.extname(filePath).toLowerCase();
     const contentType =
       {
@@ -67,10 +62,8 @@ async function processAudioFile(filePath) {
 
       const audioData = {
         filename,
-        originalPath: filePath,
         size: stats.size,
         contentType,
-        data: fileData,
         transcription,
         processed: true,
       };
@@ -94,10 +87,8 @@ async function processAudioFile(filePath) {
 
       const audioData = {
         filename,
-        originalPath: filePath,
         size: stats.size,
         contentType,
-        data: fileData,
         transcription: "TRANSCRIPTION_FAILED",
         processed: false,
       };
@@ -162,6 +153,6 @@ export function startAudioUploadService() {
   console.log(`⏱️ Will scan every ${SCAN_INTERVAL / 1000} seconds`);
   console.log(`📂 Monitoring directory: ${AUDIO_DIR}`);
 
-  scanAndProcessFiles(); // initial scan
-  setInterval(scanAndProcessFiles, SCAN_INTERVAL); // periodic scan
+  scanAndProcessFiles();
+  setInterval(scanAndProcessFiles, SCAN_INTERVAL);
 }

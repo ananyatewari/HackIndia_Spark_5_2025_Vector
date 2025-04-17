@@ -5,10 +5,6 @@ const audioSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  originalPath: {
-    type: String,
-    required: true,
-  },
   uploadDate: {
     type: Date,
     default: Date.now,
@@ -19,10 +15,6 @@ const audioSchema = new mongoose.Schema({
   },
   contentType: {
     type: String,
-    required: true,
-  },
-  data: {
-    type: Buffer,
     required: true,
   },
   transcription: {
