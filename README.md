@@ -13,10 +13,10 @@ Most tools stop at transcription.
 
 ---
 
-<p align="center">
-  <img src="./client/public/image1.png" width="350" />
-  <img src="./client/public/image.png" width="350" />
-</p>
+
+![Intro](./client/public/image2.png)
+![Intro](./client/public/image1.png)
+![Intro](./client/public/image3.png)
 
 ---
 
@@ -37,6 +37,11 @@ Most tools stop at transcription.
 ### 🎧 Audio & Transcription
 - Built with **OpenAI Whisper**
 - Speaker-aware, timestamped, highly accurate
+
+<p align="center">
+  <img src="./client/public/image4.png" width="350" />
+  <img src="./client/public/image5.png" width="350" />
+</p>
 
 ### 🤖 Smart Summarization
 - Powered by **GPT-4 + LangChain**
@@ -85,6 +90,9 @@ A caffeine-powered creation by a passionate team focused on:
 - 🤖 Practical AI
 - 🎨 Beautiful, joyful UI
 - 💡 Collaborative experiences
+
+*NOTE:* For security reasons, we have excluded .env and other sensitive configuration files from this repository.
+If you're an evaluator and would like to run the project locally, please reach out to us at ananyatewari0205@gmail.com—we'll be happy to assist!
 
 ---
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Button, Modal, Form, Input, DatePicker, TimePicker, Select, Space, Row, Col, Table, Tabs, Calendar, Badge, Statistic, message, Checkbox } from 'antd';
+import { Card, Button, Modal, Form, Input, DatePicker, TimePicker, Select, Space, Row, Col, Table, Tabs, Calendar, Badge, Statistic, message, Checkbox, Upload, Tag, Divider, Typography } from 'antd';
 import { PlusOutlined, UploadOutlined, CalendarOutlined, TeamOutlined, BarChartOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { meetingService, Meeting, MeetingStatistics } from '../services/meetingService';
+
+const { Title } = Typography;
 
 const Meetings: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -15,6 +17,9 @@ const Meetings: React.FC = () => {
   const [statistics, setStatistics] = useState<MeetingStatistics | null>(null);
   const [loading, setLoading] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   useEffect(() => {
     fetchMeetings();
@@ -186,6 +191,32 @@ const Meetings: React.FC = () => {
     );
   };
 
+  const handleUploadClick = (meetingId: string) => {
+    setSelectedMeetingId(meetingId);
+    setUploadModalVisible(true);
+  };
+
+  const handleUploadCancel = () => {
+    setUploadModalVisible(false);
+    setSelectedMeetingId(null);
+  };
+
+  const handleUpload = async (file: File) => {
+    if (!selectedMeetingId) return;
+    
+    try {
+      setUploadLoading(true);
+      await meetingService.uploadRecording(selectedMeetingId, file);
+      message.success('Recording uploaded successfully');
+      setUploadModalVisible(false);
+      setSelectedMeetingId(null);
+    } catch (error) {
+      message.error('Failed to upload recording');
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   const columns = [
     {
       title: 'Title',
@@ -204,22 +235,127 @@ const Meetings: React.FC = () => {
       key: 'time',
     },
     {
-      title: 'Meeting ID',
-      dataIndex: 'meetingId',
-      key: 'meetingId',
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => <Tag color="blue">{type}</Tag>,
+    },
+    {
+      title: 'Recurring',
+      dataIndex: 'isRecurring',
+      key: 'isRecurring',
+      render: (isRecurring: boolean) => isRecurring ? 
+        <Tag color="green">Yes</Tag> : 
+        <Tag color="default">No</Tag>,
+    },
+    {
+      title: 'Pattern',
+      dataIndex: 'recurrencePattern',
+      key: 'recurrencePattern',
+      render: (pattern: string) => pattern ? 
+        <Tag color="purple">{pattern}</Tag> : 
+        '-',
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_: any, record: Meeting) => {
+        const now = dayjs();
+        const meetingTime = dayjs(`${record.date} ${record.time}`);
+        if (meetingTime.isBefore(now)) {
+          return <Tag color="red">Past</Tag>;
+        }
+        if (meetingTime.isSame(now, 'day')) {
+          return <Tag color="green">Today</Tag>;
+        }
+        return <Tag color="blue">Upcoming</Tag>;
+      },
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: unknown, record: Meeting) => (
+      render: (_: any, record: Meeting) => (
         <Space>
-          {record.isRecurring && (
-            <Badge status="processing" text="Recurring" style={{ marginRight: '8px' }} />
-          )}
-          <Button type="link" danger onClick={() => handleDelete(record._id)}>
+          <Button 
+            icon={<UploadOutlined />} 
+            onClick={() => handleUploadClick(record._id)}
+          >
+            Upload Recording
+          </Button>
+          <Button 
+            type="primary" 
+            danger 
+            onClick={() => handleDelete(record._id)}
+          >
             Delete
           </Button>
         </Space>
+      ),
+    },
+  ];
+
+  const statisticsColumns = [
+    {
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
+    },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+    },
+    {
+      title: 'Time',
+      dataIndex: 'time',
+      key: 'time',
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => <Tag color="blue">{type}</Tag>,
+    },
+    {
+      title: 'Recording',
+      key: 'recording',
+      render: (_: any, record: Meeting) => (
+        <Button 
+          icon={<UploadOutlined />} 
+          onClick={() => handleUploadClick(record._id)}
+          type="link"
+        >
+          Upload
+        </Button>
+      ),
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_: any, record: Meeting) => {
+        const now = dayjs();
+        const meetingTime = dayjs(`${record.date} ${record.time}`);
+        if (meetingTime.isBefore(now)) {
+          return <Tag color="red">Past</Tag>;
+        }
+        if (meetingTime.isSame(now, 'day')) {
+          return <Tag color="green">Today</Tag>;
+        }
+        return <Tag color="blue">Upcoming</Tag>;
+      },
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: Meeting) => (
+        <Button 
+          type="link" 
+          danger 
+          onClick={() => handleDelete(record._id)}
+        >
+          Delete
+        </Button>
       ),
     },
   ];
@@ -260,31 +396,16 @@ const Meetings: React.FC = () => {
               <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
                 Create Meeting
               </Button>
-              <Button icon={<UploadOutlined />}>
-                Upload Recording
-              </Button>
             </Space>
           </div>
 
           <Row gutter={[24, 24]}>
-            <Col span={16}>
+            <Col span={24}>
               <Card title="Calendar View" variant="outlined">
                 <Calendar
                   value={selectedDate}
                   onSelect={onDateSelect}
                   cellRender={cellRender}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card title="Upcoming Meetings" variant="outlined">
-                <Table
-                  columns={columns}
-                  dataSource={meetings}
-                  pagination={false}
-                  size="small"
-                  loading={loading}
-                  rowKey="_id"
                 />
               </Card>
             </Col>
@@ -314,15 +435,26 @@ const Meetings: React.FC = () => {
                 value={statistics?.recurringMeetings ?? 0}
                 prefix={<TeamOutlined />}
               />
+              <Divider />
+              <Title level={5}>Meeting Types</Title>
+              {statistics?.meetingsByType && Object.entries(statistics.meetingsByType).map(([type, count]) => (
+                <Statistic
+                  key={type}
+                  title={type}
+                  value={count}
+                  style={{ marginTop: 16 }}
+                />
+              ))}
             </Card>
           </Col>
           <Col span={16}>
             <Card title="Meeting Details" variant="outlined">
               <Table
-                columns={columns}
+                columns={statisticsColumns}
                 dataSource={meetings}
                 loading={loading}
                 rowKey="_id"
+                scroll={{ x: true }}
               />
             </Card>
           </Col>
@@ -332,117 +464,150 @@ const Meetings: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px', background: '#fff', borderRadius: '8px' }}>
+    <>
       <canvas
         ref={canvasRef}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          zIndex: 0,
-          width: '100%',
-          height: '100%',
+          width: '100vw',
+          height: '100vh',
+          zIndex: -1,
           pointerEvents: 'none',
+          opacity: 1
         }}
       />
-      <Tabs defaultActiveKey="1" onChange={setActiveTab} items={items} />
-      <Modal
-        title="Create New Meeting"
-        open={createModalVisible}
-        onCancel={() => setCreateModalVisible(false)}
-        footer={null}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCreateMeeting}
+      <div style={{ 
+        padding: '24px',
+        position: 'relative',
+        zIndex: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)'
+      }}>
+        <Tabs defaultActiveKey="1" onChange={setActiveTab} items={items} />
+        <Modal
+          title="Create New Meeting"
+          open={createModalVisible}
+          onCancel={() => setCreateModalVisible(false)}
+          footer={null}
         >
-          <Form.Item
-            name="title"
-            label="Title"
-            rules={[{ required: true, message: 'Please enter meeting title' }]}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleCreateMeeting}
           >
-            <Input />
-          </Form.Item>
+            <Form.Item
+              name="title"
+              label="Title"
+              rules={[{ required: true, message: 'Please enter meeting title' }]}
+            >
+              <Input />
+            </Form.Item>
 
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter meeting description' }]}
-          >
-            <Input.TextArea />
-          </Form.Item>
+            <Form.Item
+              name="description"
+              label="Description"
+              rules={[{ required: true, message: 'Please enter meeting description' }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
 
-          <Form.Item
-            name="meetingId"
-            label="Zoom Meeting ID"
-            rules={[{ required: true, message: 'Please enter Zoom meeting ID' }]}
-          >
-            <Input placeholder="Enter Zoom meeting ID" />
-          </Form.Item>
+            <Form.Item
+              name="meetingId"
+              label="Zoom Meeting ID"
+              rules={[{ required: true, message: 'Please enter Zoom meeting ID' }]}
+            >
+              <Input placeholder="Enter Zoom meeting ID" />
+            </Form.Item>
 
-          <Form.Item
-            name="passcode"
-            label="Meeting Passcode"
-            rules={[{ required: true, message: 'Please enter meeting passcode' }]}
-          >
-            <Input placeholder="Enter meeting passcode" />
-          </Form.Item>
+            <Form.Item
+              name="passcode"
+              label="Meeting Passcode"
+              rules={[{ required: true, message: 'Please enter meeting passcode' }]}
+            >
+              <Input placeholder="Enter meeting passcode" />
+            </Form.Item>
 
-          <Form.Item
-            name="date"
-            label="Date"
-            rules={[{ required: true, message: 'Please select meeting date' }]}
-          >
-            <DatePicker style={{ width: '100%' }} />
-          </Form.Item>
+            <Form.Item
+              name="date"
+              label="Date"
+              rules={[{ required: true, message: 'Please select meeting date' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
 
-          <Form.Item
-            name="time"
-            label="Time"
-            rules={[{ required: true, message: 'Please select meeting time' }]}
-          >
-            <TimePicker format="HH:mm" style={{ width: '100%' }} />
-          </Form.Item>
+            <Form.Item
+              name="time"
+              label="Time"
+              rules={[{ required: true, message: 'Please select meeting time' }]}
+            >
+              <TimePicker format="HH:mm" style={{ width: '100%' }} />
+            </Form.Item>
 
-          <Form.Item
-            name="isRecurring"
-            valuePropName="checked"
-          >
-            <Checkbox>Recurring Meeting</Checkbox>
-          </Form.Item>
+            <Form.Item
+              name="isRecurring"
+              valuePropName="checked"
+            >
+              <Checkbox>Recurring Meeting</Checkbox>
+            </Form.Item>
 
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) => prevValues.isRecurring !== currentValues.isRecurring}
-          >
-            {({ getFieldValue }) => {
-              const isRecurring = getFieldValue('isRecurring');
-              return isRecurring ? (
-                <Form.Item
-                  name="recurrencePattern"
-                  label="Recurrence Pattern"
-                  rules={[{ required: true, message: 'Please select recurrence pattern' }]}
-                >
-                  <Select>
-                    <Select.Option value="daily">Daily</Select.Option>
-                    <Select.Option value="weekly">Weekly</Select.Option>
-                    <Select.Option value="biweekly">Bi-weekly</Select.Option>
-                    <Select.Option value="monthly">Monthly</Select.Option>
-                  </Select>
-                </Form.Item>
-              ) : null;
+            <Form.Item
+              noStyle
+              shouldUpdate={(prevValues, currentValues) => prevValues.isRecurring !== currentValues.isRecurring}
+            >
+              {({ getFieldValue }) => {
+                const isRecurring = getFieldValue('isRecurring');
+                return isRecurring ? (
+                  <Form.Item
+                    name="recurrencePattern"
+                    label="Recurrence Pattern"
+                    rules={[{ required: true, message: 'Please select recurrence pattern' }]}
+                  >
+                    <Select>
+                      <Select.Option value="daily">Daily</Select.Option>
+                      <Select.Option value="weekly">Weekly</Select.Option>
+                      <Select.Option value="biweekly">Bi-weekly</Select.Option>
+                      <Select.Option value="monthly">Monthly</Select.Option>
+                    </Select>
+                  </Form.Item>
+                ) : null;
+              }}
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Create Meeting
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal
+          title="Upload Meeting Recording"
+          open={uploadModalVisible}
+          onCancel={handleUploadCancel}
+          footer={null}
+        >
+          <Upload.Dragger
+            name="recording"
+            multiple={false}
+            showUploadList={false}
+            beforeUpload={(file) => {
+              handleUpload(file);
+              return false;
             }}
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Create Meeting
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+            accept="audio/*,video/*"
+          >
+            <p className="ant-upload-drag-icon">
+              <UploadOutlined />
+            </p>
+            <p className="ant-upload-text">Click or drag recording file to this area to upload</p>
+            <p className="ant-upload-hint">
+              Support for audio and video files
+            </p>
+          </Upload.Dragger>
+        </Modal>
+      </div>
+    </>
   );
 };
 

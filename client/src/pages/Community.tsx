@@ -228,94 +228,150 @@ const Community: React.FC = () => {
           pointerEvents: 'none',
         }}
       />
-      <div style={{ marginBottom: 24 }}>
-        <Space>
-          <Button type="primary" icon={<PlusOutlined />} onClick={showCreateGroupModal}>
-            Create Group
-          </Button>
-          <Button icon={<UserAddOutlined />} onClick={showInviteModal}>
-            Invite Members
-          </Button>
-        </Space>
+      <div style={{ padding: '24px', position: 'relative', zIndex: 1, backgroundColor: 'rgba(255, 255, 255, 0.85)' }}>
+        <div style={{ marginBottom: 24 }}>
+          <Space>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={showCreateGroupModal}
+              style={{ 
+                background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+                border: 'none'
+              }}
+            >
+              Create Group
+            </Button>
+            <Button 
+              icon={<UserAddOutlined />} 
+              onClick={showInviteModal}
+              style={{
+                borderColor: '#722ed1',
+                color: '#722ed1'
+              }}
+            >
+              Invite Members
+            </Button>
+          </Space>
+        </div>
+
+        <Row gutter={[24, 24]}>
+          <Col span={12}>
+            <Card 
+              title={<span style={{ color: '#4338CA', fontSize: '18px', fontWeight: 'bold' }}>Groups</span>}
+              className="dashboard-card"
+              style={{ background: '#EEF2FF' }}
+              bordered={false}
+            >
+              <List
+                itemLayout="horizontal"
+                dataSource={groups}
+                renderItem={(group) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        type="link"
+                        onClick={() => handleRemoveGroup(group.id)}
+                        danger
+                      >
+                        Remove
+                      </Button>
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar 
+                          icon={<TeamOutlined />} 
+                          style={{ 
+                            backgroundColor: '#C7D2FE',
+                            color: '#4338CA'
+                          }} 
+                        />
+                      }
+                      title={<span style={{ color: '#1E293B', fontWeight: 'bold' }}>{group.name}</span>}
+                      description={
+                        <>
+                          <div style={{ color: '#4B5563' }}>{group.description}</div>
+                          <Tag color="blue">{group.members.length} members</Tag>
+                        </>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+
+          <Col span={12}>
+            <Card 
+              title={<span style={{ color: '#BE185D', fontSize: '18px', fontWeight: 'bold' }}>Members</span>}
+              className="dashboard-card"
+              style={{ background: '#FDF2F8' }}
+              bordered={false}
+            >
+              <List
+                itemLayout="horizontal"
+                dataSource={members}
+                renderItem={(member) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        type="link"
+                        onClick={() => handleRemoveMember(member.id)}
+                        danger
+                      >
+                        Remove
+                      </Button>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar 
+                          style={{ 
+                            backgroundColor: '#FCE7F3',
+                            color: '#BE185D'
+                          }}
+                        >
+                          {member.name.charAt(0)}
+                        </Avatar>
+                      }
+                      title={<span style={{ color: '#1E293B', fontWeight: 'bold' }}>{member.name}</span>}
+                      description={
+                        <>
+                          <div style={{ color: '#4B5563' }}>{member.email}</div>
+                          <Tag color="green">{member.role}</Tag>
+                        </>
+                      }
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        <style jsx>{`
+          .dashboard-card {
+            border-radius: 16px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            padding: 24px !important;
+          }
+          .dashboard-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+          }
+          .ant-list-item {
+            padding: 16px !important;
+            border-radius: 8px !important;
+            margin-bottom: 8px !important;
+            background: rgba(255, 255, 255, 0.7) !important;
+            transition: all 0.3s ease !important;
+          }
+          .ant-list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+          }
+        `}</style>
       </div>
-
-      <Row gutter={[24, 24]}>
-        <Col span={12}>
-          <Card title="Groups">
-            <List
-              itemLayout="horizontal"
-              dataSource={groups}
-              renderItem={(group) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      type="link"
-                      onClick={() => console.log('View group', group.id)}
-                    >
-                      View
-                    </Button>,
-                    <Button
-                      type="link"
-                      onClick={() => console.log('Edit group', group.id)}
-                    >
-                      Edit
-                    </Button>,
-                    <Button
-                      type="link"
-                      onClick={() => handleRemoveGroup(group.id)}
-                    >
-                      Remove
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={<Avatar icon={<TeamOutlined />} />}
-                    title={group.name}
-                    description={
-                      <>
-                        <div>{group.description}</div>
-                        <Tag color="blue">{group.members.length} members</Tag>
-                      </>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-
-        <Col span={12}>
-          <Card title="Members">
-            <List
-              itemLayout="horizontal"
-              dataSource={members}
-              renderItem={(member) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      type="link"
-                      onClick={() => handleRemoveMember(member.id)}
-                    >
-                      Remove
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={<Avatar>{member.name.charAt(0)}</Avatar>}
-                    title={member.name}
-                    description={
-                      <>
-                        <div>{member.email}</div>
-                        <Tag color="green">{member.role}</Tag>
-                      </>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-      </Row>
 
       <Modal
         title="Create New Group"

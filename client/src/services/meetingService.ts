@@ -30,6 +30,12 @@ export interface Meeting {
   joinUrl?: string;
   isRecurrence?: boolean;
   originalMeetingId?: string;
+  hasRecording?: boolean;
+  processed?: boolean;
+  uploadDate?: string;
+  processedDate?: string;
+  mom?: string;
+  momGeneratedDate?: string;
 }
 
 export interface MeetingStatistics {
@@ -97,6 +103,24 @@ export const meetingService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching statistics:', error);
+      throw error;
+    }
+  },
+
+  uploadRecording: async (meetingId: string, file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('recording', file);
+      formData.append('meetingId', meetingId);
+      
+      const response = await axios.post('http://localhost:5000/api/audio/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading recording:', error);
       throw error;
     }
   },

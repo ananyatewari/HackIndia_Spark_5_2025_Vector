@@ -9,7 +9,7 @@ import {
   generateMinutesOfMeeting,
 } from "./summarize.js";
 
-const SUMMARY_INTERVAL = 60 * 1000; // 30 seconds
+const SUMMARY_INTERVAL = 60 * 1000;
 
 export async function processPendingSummaries() {
   try {
