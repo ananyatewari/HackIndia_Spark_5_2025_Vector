@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, List, Typography, Button, Space, Statistic, Tag, Empty, Spin } from 'antd';
 import { 
   PlusOutlined, 
@@ -14,10 +14,73 @@ import { meetingService, Meeting } from '../services/meetingService';
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
   const [statistics, setStatistics] = useState<any>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+  
+    if (!canvas || !ctx) return;
+  
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+  
+    const pastelColors = [
+      '#ffd1dc', '#d1cfff', '#c0f7ff', '#d2f5c4',
+      '#fff3b0', '#ffdfba', '#e0c3fc', '#fce1e4'
+    ];
+  
+    const particles: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+      color: string;
+      hover: boolean;
+    }[] = Array.from({ length: 50 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 1.3,
+      vy: (Math.random() - 0.5) * 1.6,
+      radius: Math.random() * 6 + 8,
+      color: pastelColors[Math.floor(Math.random() * pastelColors.length)],
+      hover: false,
+    }));
+  
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        ctx.font = `${p.radius * 2}px Arial`;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.fillText('AI', p.x, p.y);
+        ctx.shadowBlur = 0;
+  
+        p.x += p.vx;
+        p.y += p.vy;
+  
+        if (p.x - p.radius < 0 || p.x + p.radius > width) p.vx *= -1;
+        if (p.y - p.radius < 0 || p.y + p.radius > height) p.vy *= -1;
+      });
+      requestAnimationFrame(draw);
+    };
+  
+    draw();
+  
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+  
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -55,6 +118,20 @@ const Dashboard: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Main Dashboard Content */}
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
         <Col>
           <Title level={2} style={{ margin: 0 }}>Welcome to Speakly</Title>
@@ -198,4 +275,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

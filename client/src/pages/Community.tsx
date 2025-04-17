@@ -1,13 +1,81 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, Modal, Form, Input, List, Avatar, Tag, Space, Select, Row, Col } from 'antd';
 import { PlusOutlined, UserAddOutlined, TeamOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
 const Community: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isCreateGroupModalVisible, setIsCreateGroupModalVisible] = useState(false);
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
   const [form] = Form.useForm();
+
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+  
+    if (!canvas || !ctx) return;
+  
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+  
+    const pastelColors = [
+      '#ffd1dc', '#d1cfff', '#c0f7ff', '#d2f5c4',
+      '#fff3b0', '#ffdfba', '#e0c3fc', '#fce1e4'
+    ];
+  
+    const particles: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+      color: string;
+      hover: boolean;
+    }[] = Array.from({ length: 50 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 2,
+      vy: (Math.random() - 0.5) * 3,
+      radius: Math.random() * 1 + 8,
+      color: pastelColors[Math.floor(Math.random() * pastelColors.length)],
+      hover: false,
+    }));
+  
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+    
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    
+        p.x += p.vx;
+        p.y += p.vy;
+    
+        if (p.x - p.radius < 0 || p.x + p.radius > width) p.vx *= -1;
+        if (p.y - p.radius < 0 || p.y + p.radius > height) p.vy *= -1;
+      });
+    
+      requestAnimationFrame(draw);
+    };
+    
+  
+    draw();
+  
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+  
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const loadData = () => {
     const savedGroups = localStorage.getItem('groups');
@@ -148,6 +216,18 @@ const Community: React.FC = () => {
 
   return (
     <div>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+        }}
+      />
       <div style={{ marginBottom: 24 }}>
         <Space>
           <Button type="primary" icon={<PlusOutlined />} onClick={showCreateGroupModal}>
