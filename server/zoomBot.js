@@ -12,7 +12,7 @@ async function joinZoomMeeting({ meetId, meetPassCode, joineeName }) {
     args: [
       "--start-maximized",
       "--disable-notifications",
-      "--use-fake-ui-for-media-stream", // auto-accept mic/cam
+      "--use-fake-ui-for-media-stream",
       "--no-sandbox",
       "--disable-setuid-sandbox"
     ],

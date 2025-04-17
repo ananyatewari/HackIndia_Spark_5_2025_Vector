@@ -9,7 +9,7 @@ import {
 
 dotenv.config();
 
-const FILE_PATH = "C:\\Users\\Hp\\Downloads\\efg.m4a";    // replace with the file path
+const FILE_PATH = "C:\\Users\\Hp\\Downloads\\efg.m4a";
 
 async function run() {
   console.log("⏳ Transcribing audio...");

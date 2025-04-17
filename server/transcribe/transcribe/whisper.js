@@ -1,4 +1,3 @@
-// transcribe/whisper.js (AssemblyAI version)
 import fs from 'fs';
 import axios from 'axios';
 import dotenv from 'dotenv';
@@ -53,7 +52,7 @@ async function waitForCompletion(transcriptId) {
       throw new Error(`Transcription failed: ${response.data.error}`);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait 3s
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 }
 
