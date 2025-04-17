@@ -6,10 +6,11 @@ import {
   segregateSpeakers,
   generateMinutesOfMeeting
 } from "./summarize/summarize.js";
+import { saveToGoogleDocs } from "./integrations/googleDocs.js";
 
 dotenv.config();
 
-const FILE_PATH = "C:\\Users\\Hp\\Downloads\\efg.m4a";
+const FILE_PATH = "C:\\Users\\Hp\\Downloads\\abc.mp3";
 
 async function run() {
   console.log("⏳ Transcribing audio...");
@@ -38,6 +39,12 @@ async function run() {
   const mom = await generateMinutesOfMeeting(transcript);
   console.log("\n📝 Minutes of Meeting:\n", mom);
 
+  await saveToGoogleDocs({
+    title: "Team Sync - April 17, 2025",
+    summary,
+    actionItems,
+    mom,
+  });
 }
 
 run();
