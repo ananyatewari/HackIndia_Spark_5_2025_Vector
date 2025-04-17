@@ -10,7 +10,7 @@ import { saveToGoogleDocs } from "./integrations/googleDocs.js";
 
 dotenv.config();
 
-const FILE_PATH = "C:\\Users\\Hp\\Downloads\\abc.mp3"; // replace with the file path
+const FILE_PATH = "C:\\Users\\Hp\\Downloads\\abc.mp3";
 
 async function run() {
   console.log("⏳ Transcribing audio...");
@@ -39,7 +39,6 @@ async function run() {
   const mom = await generateMinutesOfMeeting(transcript);
   console.log("\n📝 Minutes of Meeting:\n", mom);
 
-  // ✅ Save to Google Docs here
   await saveToGoogleDocs({
     title: "Team Sync - April 17, 2025",
     summary,
