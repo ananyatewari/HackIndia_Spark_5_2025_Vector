@@ -7,8 +7,8 @@ import { transcribeAudio } from "../transcribe/transcribe/whisper.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const AUDIO_DIR = path.join(__dirname, "../uploads/audio");
-const SCAN_INTERVAL = 60 * 1000; 
+const AUDIO_DIR = path.join(__dirname, "../uploads/");
+const SCAN_INTERVAL = 60 * 1000;
 
 if (!fs.existsSync(AUDIO_DIR)) {
   fs.mkdirSync(AUDIO_DIR, { recursive: true });
@@ -50,6 +50,7 @@ async function processAudioFile(filePath) {
       }[extension] || "audio/mpeg";
 
     console.log(`🔊 Starting transcription for: ${filePath}`);
+
     try {
       const transcription = await transcribeAudio(filePath);
 
@@ -66,6 +67,7 @@ async function processAudioFile(filePath) {
         contentType,
         transcription,
         processed: true,
+        summary: "PENDING",
       };
 
       if (existingAudio) {
@@ -91,6 +93,7 @@ async function processAudioFile(filePath) {
         contentType,
         transcription: "TRANSCRIPTION_FAILED",
         processed: false,
+        summary: "TRANSCRIPTION_FAILED",
       };
 
       if (existingAudio) {
@@ -114,7 +117,6 @@ async function processAudioFile(filePath) {
   }
 }
 
-
 async function scanAndProcessFiles() {
   try {
     console.log(`🔍 Scanning directory: ${AUDIO_DIR}`);
@@ -136,6 +138,35 @@ async function scanAndProcessFiles() {
 
     for (const file of audioFiles) {
       const filePath = path.join(AUDIO_DIR, file);
+      const filename = path.basename(file);
+
+      const existingAudio = await Audio.findOne({ filename });
+
+      if (!existingAudio) {
+        const stats = fs.statSync(filePath);
+        const extension = path.extname(file).toLowerCase();
+        const contentType =
+          {
+            ".mp3": "audio/mpeg",
+            ".wav": "audio/wav",
+            ".m4a": "audio/m4a",
+            ".ogg": "audio/ogg",
+            ".webm": "audio/webm",
+          }[extension] || "audio/mpeg";
+
+        const audio = new Audio({
+          filename,
+          size: stats.size,
+          contentType,
+          transcription: "PENDING",
+          processed: false,
+          summary: "PENDING",
+        });
+
+        await audio.save();
+        console.log(`📝 Added new audio to DB (pending processing): ${file}`);
+      }
+
       console.log(`➡️ Starting processing for: ${file}`);
       await processAudioFile(filePath);
     }

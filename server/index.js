@@ -4,7 +4,7 @@ import cors from "cors";
 import meetingRoutes from "./routes/meetingRoutes.js";
 import { connectDB } from "./db/mongodb.js";
 import { startAudioUploadService } from "./services/audioUploadService.js";
-
+import { startSummaryService } from "./transcribe/summarize/processPendingSummaries.js";
 const app = express();
 
 app.use(cors());
@@ -13,7 +13,7 @@ connectDB();
 
 
 startAudioUploadService();
-
+startSummaryService();
 app.use("/api/meetings", meetingRoutes);
 
 mongoose

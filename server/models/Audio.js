@@ -25,6 +25,23 @@ const audioSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  summary: {
+    type: String,
+    required: true,
+    default: "PENDING",
+  },
+  actionItems: {
+    type: String,
+    default: "",
+  },
+  speakers: {
+    type: String,
+    default: "",
+  },
+  mom: {
+    type: String,
+    default: "",
+  },
 });
 
 const Audio = mongoose.model("Audio", audioSchema);

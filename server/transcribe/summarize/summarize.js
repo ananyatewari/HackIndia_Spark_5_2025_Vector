@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const gemini = new ChatGoogleGenerativeAI({
-  model: "models/gemini-1.5-pro",
+  model: "models/gemini-1.5-pro", 
   apiKey: process.env.GOOGLE_API_KEY,
   temperature: 0.7,
 });
